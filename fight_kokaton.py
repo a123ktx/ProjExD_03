@@ -3,6 +3,7 @@ import random
 import sys
 import time
 import pygame as pg
+import math
 
 
 WIDTH = 1100  # ゲームウィンドウの幅
@@ -56,6 +57,7 @@ class Bird:
         self.img = __class__.imgs[(+5, 0)]
         self.rct: pg.Rect = self.img.get_rect()
         self.rct.center = xy
+        self.dire = (+5, 0) # こうかとんの向きを表すタプル
 
     def change_img(self, num: int, screen: pg.Surface):
         """
@@ -78,6 +80,9 @@ class Bird:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
         self.rct.move_ip(sum_mv)
+        # self.direを更新する
+        if sum_mv != [0, 0]:
+            self.dire = tuple(sum_mv)
         if check_bound(self.rct) != (True, True):
             self.rct.move_ip(-sum_mv[0], -sum_mv[1])
         if not (sum_mv[0] == 0 and sum_mv[1] == 0):
@@ -95,11 +100,14 @@ class Beam:
         ビーム画像Surfaceを生成する
         引数 bird：ビームを放つこうかとん（Birdインスタンス）
         """
-        self.img = pg.image.load(f"fig/beam.png")
-        self.rct = self.img.get_rect()
-        self.rct.centery = bird.rct.centery
-        self.rct.left = bird.rct.right
-        self.vx, self.vy = +5, 0
+        # bird.direにアクセスする
+        self.vx, self.vy = bird.dire
+        atan = math.atan2(-self.vy, self.vx)
+        self.angle = math.degrees(atan)
+        self.img = pg.transform.rotozoom(pg.image.load(f"fig/beam.png"), self.angle, 1)
+        self.rct = self.img.get_rect() 
+        self.rct.centery = bird.rct.centery + bird.rct.height * (self.vy/5)
+        self.rct.left = bird.rct.right + bird.rct.width * (self.vx/5)
 
     def update(self, screen: pg.Surface):
         """
@@ -172,6 +180,11 @@ class Explosion:
     angleは爆発をflipさせるリスト
     """
     def __init__(self, bomb:Bomb, life: int):
+        """
+        爆発のイニシャライザ
+        引数1 : 爆発する爆弾
+        引数2 : 爆発の持続時間
+        """
         self.lst = [] # 爆発を入れるリスト
         self.img = pg.image.load(f"fig/explosion.gif") # 元となる爆発
         self.lst.append(self.img)
