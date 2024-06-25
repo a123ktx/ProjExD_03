@@ -87,9 +87,9 @@ class Bird:
 
 # ビームクラス:
 class Beam:
-    # """
-    # こうかとんが放つビームに関するクラス
-    # """
+    """
+    こうかとんが放つビームに関するクラス
+    """
     def __init__(self, bird:"Bird"):
         """
         ビーム画像Surfaceを生成する
@@ -166,6 +166,40 @@ class Score:
         screen.blit(self.img, self.xy)
 
 
+class Explosion:
+    """
+    爆弾にビームを当てた時の爆発を置くクラス
+    angleは爆発をflipさせるリスト
+    """
+    def __init__(self, bomb:Bomb, life: int):
+        self.lst = [] # 爆発を入れるリスト
+        self.img = pg.image.load(f"fig/explosion.gif") # 元となる爆発
+        self.lst.append(self.img)
+        self.rct = self.img.get_rect()
+        self.lst.append(pg.transform.flip(self.img, True, False))
+        self.lst.append(pg.transform.flip(self.img, False, True))
+        self.lst.append(pg.transform.flip(self.img, False, False))
+        self.lst.append(self.img)
+        self.rct.center = bomb.rct.center
+        self.life = life
+        self.time = 0
+
+    def update(self, screen:pg.Surface):
+        """
+        爆発を描画する関数
+        引数 screen : 画面のSurface
+        """
+        self.life -= 1
+        if self.life > 0:
+            if self.time > 5:
+                self.time = 0
+                self.img = self.lst[self.life%4]
+                screen.blit(self.img, self.rct)
+            else:
+                self.time += 1
+                screen.blit(self.img, self.rct)
+
+
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
@@ -177,6 +211,7 @@ def main():
         bombs.append(bomb)
     score = Score((0, 0, 255)) # スコアのイニシャライザを呼び出す
     beams = [] # Beamクラスのインスタンスを複数扱うための空リスト
+    explosions = [] # 爆発を入れるリスト
     clock = pg.time.Clock()
     tmr = 0
     beam = None # エラーを回避するために、予め作っておく
@@ -206,6 +241,9 @@ def main():
             for j in range(len(beams)):
                 if beams[j] and bombs[i]:
                     if beams[j].rct.colliderect(bombs[i].rct):
+                        # 爆発を発生させる
+                        exp = Explosion(bombs[i], 50)
+                        explosions.append(exp)
                         # ビームと爆弾が接触した時に、どちらも消滅させる
                         beams[j] = None
                         bombs[i] = None
@@ -226,7 +264,9 @@ def main():
             for beam in beams:
                 beam.update(screen)   
         for bomb in bombs:         
-            bomb.update(screen) 
+            bomb.update(screen)
+        for exp in explosions:
+            exp.update(screen)
         score.update(screen)
         pg.display.update()
         tmr += 1
