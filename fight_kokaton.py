@@ -118,8 +118,8 @@ class Beam:
             self.rct.move_ip(self.vx, self.vy)
             screen.blit(self.img, self.rct)
         # 壁に当たったビームの判定を画面外に飛ばす
-        else:
-            self.rct.center = (-100, -100)    
+        elif self.rct.center != (-100, -100):
+            self.rct.center = (-100, -100)   
 
 
 class Bomb:
