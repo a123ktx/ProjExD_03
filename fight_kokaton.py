@@ -142,6 +142,30 @@ class Bomb:
         screen.blit(self.img, self.rct)
 
 
+class Score:
+    """
+    スコアを表記するクラス
+    """
+    def __init__(self, color: tuple[int, int, int]):
+        """
+        引数に基づきスコアのフォントを作成する
+        引数1 : フォントの色
+        """
+        self.fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
+        self.num = 0
+        self.color = color
+        self.img = self.fonto.render(f"スコア：{self.num}", 0, color)
+        self.xy = [100, HEIGHT-50]
+    
+    def update(self, screen:pg.Surface):
+        """
+        スコアを更新する関数
+        引数 screen : 画面Surface
+        """
+        self.img = self.fonto.render(f"スコア：{self.num}", 0, self.color)
+        screen.blit(self.img, self.xy)
+
+
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
@@ -151,6 +175,7 @@ def main():
     for i in range(NUM_OF_BOMBS):
         bomb = Bomb((255, 0, 0), 10)
         bombs.append(bomb)
+    score = Score((0, 0, 255)) # スコアのイニシャライザを呼び出す
     clock = pg.time.Clock()
     tmr = 0
     beam = None # エラーを回避するために、予め作っておく
@@ -183,6 +208,8 @@ def main():
                     bombs[b] = None
                     # こうかとんが喜ぶ画像と切り替える
                     bird.change_img(9, screen)
+                    #スコアを1増加させる
+                    score.num += 1
         
         # 爆弾リスト内にあるNoneを削除する
         while None in bombs:
@@ -193,6 +220,7 @@ def main():
             beam.update(screen)   
         for bomb in bombs:         
             bomb.update(screen)
+        score.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
