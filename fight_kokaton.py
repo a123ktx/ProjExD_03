@@ -222,9 +222,7 @@ def main():
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
     bombs = []
-    for i in range(NUM_OF_BOMBS):
-        bomb = Bomb((255, 0, 0), 10)
-        bombs.append(bomb)
+    bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
     score = Score((0, 0, 255)) # スコアのイニシャライザを呼び出す
     beams = [] # Beamクラスのインスタンスを複数扱うための空リスト
     explosions = [] # 爆発を入れるリスト
