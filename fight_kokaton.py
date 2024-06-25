@@ -7,6 +7,7 @@ import pygame as pg
 
 WIDTH = 1100  # ゲームウィンドウの幅
 HEIGHT = 650  # ゲームウィンドウの高さ
+NUM_OF_BOMBS = 4 # 爆弾の数を定義
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -146,7 +147,10 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
-    bomb = Bomb((255, 0, 0), 10)
+    bombs = []
+    for i in range(NUM_OF_BOMBS):
+        bomb = Bomb((255, 0, 0), 10)
+        bombs.append(bomb)
     clock = pg.time.Clock()
     tmr = 0
     beam = None # エラーを回避するために、予め作っておく
@@ -159,27 +163,32 @@ def main():
                 beam = Beam(bird)           
         screen.blit(bg_img, [0, 0])
         
-        if bomb: # 爆弾のNone判定
-            if bird.rct.colliderect(bomb.rct):
-                # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
-                bird.change_img(8, screen)
-                pg.display.update()
-                time.sleep(1)
-                return
+        for b in bombs:
+            if b: # 爆弾のNone判定
+                if bird.rct.colliderect(b.rct):
+                    # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
+                    bird.change_img(8, screen)
+                    pg.display.update()
+                    time.sleep(1)
+                    return
         
-        if beam and bomb:
-            if beam.rct.colliderect(bomb.rct):
-                # ビームと爆弾が接触した時に、どちらも消滅させる
-                beam = None
-                bomb = None
-                # こうかとんが喜ぶ画像と切り替える
-                bird.change_img(9, screen)
-
+        for b in range(len(bombs)):
+            if beam and bombs[b]:
+                if beam.rct.colliderect(bombs[b].rct):
+                    # ビームと爆弾が接触した時に、どちらも消滅させる
+                    beam = None
+                    bombs[b] = None
+                    # こうかとんが喜ぶ画像と切り替える
+                    bird.change_img(9, screen)
+        
+        # 爆弾リスト内にあるNoneを削除する
+        while None in bombs:
+            bombs.remove(None)
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         if beam:
             beam.update(screen)   
-        if bomb: # 爆弾のNone判定
+        for bomb in bombs:         
             bomb.update(screen)
         pg.display.update()
         tmr += 1
